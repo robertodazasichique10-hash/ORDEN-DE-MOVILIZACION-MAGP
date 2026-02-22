@@ -1,0 +1,1939 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Órdenes de Movilización - 08D01 Esmeraldas MAGP</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-bottom: 5px solid #f1c40f;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .header h2 {
+            font-size: 18px;
+            font-weight: 300;
+            opacity: 0.9;
+        }
+
+        .login-container {
+            padding: 40px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+        }
+
+        .btn-success {
+            background: #27ae60;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+        }
+
+        .btn-warning {
+            background: #f39c12;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .dashboard {
+            padding: 30px;
+        }
+
+        .user-info {
+            background: #ecf0f1;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .user-info h3 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .role-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-top: 5px;
+        }
+
+        .role-admin { background: #e74c3c; color: white; }
+        .role-conductor { background: #3498db; color: white; }
+        .role-transporte { background: #27ae60; color: white; }
+        .role-financiero { background: #f39c12; color: white; }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .menu-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .menu-card:hover {
+            border-color: #667eea;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .menu-card i {
+            font-size: 40px;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .menu-card h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .form-section h3 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .required::after {
+            content: " *";
+            color: #e74c3c;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .signature-pad {
+            border: 2px dashed #bdc3c7;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            background: white;
+            margin: 20px 0;
+        }
+
+        .signature-display {
+            font-family: 'Brush Script MT', cursive;
+            font-size: 24px;
+            color: #2c3e50;
+            padding: 20px;
+            border: 2px solid #3498db;
+            border-radius: 5px;
+            background: #ecf0f1;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .order-list {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: #f5f5f5;
+        }
+
+        .status-pendiente { color: #f39c12; font-weight: bold; }
+        .status-firmado-conductor { color: #3498db; font-weight: bold; }
+        .status-firmado-transporte { color: #27ae60; font-weight: bold; }
+        .status-autorizado { color: #9b59b6; font-weight: bold; }
+        .status-archivado { color: #2c3e50; font-weight: bold; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background: white;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            position: relative;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .close {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            font-size: 30px;
+            cursor: pointer;
+            color: #aaa;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .qr-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        #qrcode {
+            display: inline-block;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .pdf-preview {
+            background: white;
+            border: 1px solid #ddd;
+            padding: 40px;
+            margin: 20px 0;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        .pdf-header {
+            text-align: center;
+            border-bottom: 3px solid #1e3c72;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .pdf-header h1 {
+            color: #1e3c72;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .pdf-header h2 {
+            color: #2c3e50;
+            font-size: 16px;
+        }
+
+        .pdf-section {
+            margin-bottom: 20px;
+        }
+
+        .pdf-section h3 {
+            background: #ecf0f1;
+            padding: 10px;
+            color: #2c3e50;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .pdf-field {
+            margin-bottom: 10px;
+            display: flex;
+        }
+
+        .pdf-label {
+            font-weight: bold;
+            width: 200px;
+            color: #34495e;
+        }
+
+        .pdf-value {
+            flex: 1;
+            border-bottom: 1px solid #bdc3c7;
+            padding-bottom: 2px;
+        }
+
+        .signatures-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 40px;
+            page-break-inside: avoid;
+        }
+
+        .signature-box {
+            text-align: center;
+            border-top: 1px solid #2c3e50;
+            padding-top: 10px;
+            margin-top: 60px;
+        }
+
+        .signature-name {
+            font-weight: bold;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .signature-role {
+            font-size: 10px;
+            color: #7f8c8d;
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #pdfContent, #pdfContent * {
+                visibility: visible;
+            }
+            #pdfContent {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 { font-size: 18px; }
+            .header h2 { font-size: 14px; }
+            .form-row { grid-template-columns: 1fr; }
+            .signatures-grid { grid-template-columns: 1fr; }
+            .menu-grid { grid-template-columns: 1fr; }
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #e0e0e0;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: #ecf0f1;
+            border: none;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            border-radius: 5px 5px 0 0;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Dirección Distrital 08D01 Esmeraldas MAGP</h1>
+            <h2>Sistema de Gestión de Órdenes de Movilización</h2>
+        </div>
+
+        <!-- Alert Messages -->
+        <div id="alertContainer" class="alert"></div>
+
+        <!-- Login Section -->
+        <div id="loginSection" class="login-container">
+            <h2 style="text-align: center; margin-bottom: 30px; color: #2c3e50;">Iniciar Sesión</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginCedula">Número de Cédula</label>
+                    <input type="text" id="loginCedula" placeholder="Ingrese su número de cédula" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Contraseña</label>
+                    <input type="password" id="loginPassword" placeholder="Ingrese su contraseña" required>
+                </div>
+                <button type="submit" class="btn" style="width: 100%;">Ingresar al Sistema</button>
+            </form>
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="#" onclick="showForgotPassword()" style="color: #667eea; text-decoration: none;">¿Olvidó su contraseña?</a>
+            </div>
+        </div>
+
+        <!-- Forgot Password Section -->
+        <div id="forgotPasswordSection" class="login-container hidden">
+            <h2 style="text-align: center; margin-bottom: 30px; color: #2c3e50;">Cambiar Contraseña</h2>
+            <form id="forgotPasswordForm">
+                <div class="form-group">
+                    <label for="fpCedula">Número de Cédula</label>
+                    <input type="text" id="fpCedula" placeholder="Ingrese su número de cédula" required>
+                </div>
+                <div class="form-group">
+                    <label for="fpOldPassword">Contraseña Actual</label>
+                    <input type="password" id="fpOldPassword" placeholder="Ingrese su contraseña actual" required>
+                </div>
+                <div class="form-group">
+                    <label for="fpNewPassword">Nueva Contraseña</label>
+                    <input type="password" id="fpNewPassword" placeholder="Ingrese su nueva contraseña" required>
+                </div>
+                <div class="form-group">
+                    <label for="fpConfirmPassword">Confirmar Nueva Contraseña</label>
+                    <input type="password" id="fpConfirmPassword" placeholder="Confirme su nueva contraseña" required>
+                </div>
+                <button type="submit" class="btn" style="width: 100%;">Cambiar Contraseña</button>
+                <button type="button" class="btn btn-secondary" style="width: 100%; margin-top: 10px;" onclick="showLogin()">Volver al Login</button>
+            </form>
+        </div>
+
+        <!-- Main Dashboard -->
+        <div id="dashboardSection" class="dashboard hidden">
+            <div class="user-info">
+                <div>
+                    <h3 id="userNameDisplay">Nombre del Usuario</h3>
+                    <span id="userRoleDisplay" class="role-badge">Rol</span>
+                    <p style="margin-top: 10px; color: #7f8c8d; font-size: 14px;">Cédula: <span id="userCedulaDisplay"></span></p>
+                </div>
+                <div>
+                    <button class="btn btn-secondary" onclick="logout()">Cerrar Sesión</button>
+                    <button class="btn btn-warning" onclick="showChangePassword()">Cambiar Contraseña</button>
+                </div>
+            </div>
+
+            <!-- Admin Dashboard -->
+            <div id="adminDashboard" class="hidden">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalUsers">86</div>
+                        <div class="stat-label">Usuarios Registrados</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalOrders">0</div>
+                        <div class="stat-label">Órdenes Generadas</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="pendingOrders">0</div>
+                        <div class="stat-label">Pendientes de Firma</div>
+                    </div>
+                </div>
+
+                <div class="tabs">
+                    <button class="tab active" onclick="showTab('userManagement')">Gestión de Usuarios</button>
+                    <button class="tab" onclick="showTab('allOrders')">Todas las Órdenes</button>
+                    <button class="tab" onclick="showTab('systemConfig')">Configuración</button>
+                </div>
+
+                <div id="userManagement" class="tab-content active">
+                    <h3>Crear Nuevo Usuario</h3>
+                    <form id="createUserForm" class="form-section">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="required">Cédula</label>
+                                <input type="text" id="newUserCedula" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="required">Nombres y Apellidos</label>
+                                <input type="text" id="newUserName" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="required">Rol</label>
+                                <select id="newUserRole" required>
+                                    <option value="">Seleccione...</option>
+                                    <option value="conductor">Conductor</option>
+                                    <option value="transporte">Responsable de Transporte</option>
+                                    <option value="financiero">Jefe Financiero</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success">Crear Usuario</button>
+                    </form>
+
+                    <h3 style="margin-top: 30px;">Lista de Usuarios</h3>
+                    <div class="order-list">
+                        <table id="usersTable">
+                            <thead>
+                                <tr>
+                                    <th>Cédula</th>
+                                    <th>Nombre</th>
+                                    <th>Rol</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="allOrders" class="tab-content">
+                    <h3>Todas las Órdenes de Movilización</h3>
+                    <div class="order-list">
+                        <table id="allOrdersTable">
+                            <thead>
+                                <tr>
+                                    <th>N° Orden</th>
+                                    <th>Fecha</th>
+                                    <th>Solicitante</th>
+                                    <th>Conductor</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="allOrdersTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="systemConfig" class="tab-content">
+                    <h3>Configuración del Sistema</h3>
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label>Nombre del Jefe Financiero Actual</label>
+                            <input type="text" id="jefeFinancieroName" placeholder="Ingrese el nombre del Jefe Financiero">
+                        </div>
+                        <button class="btn btn-success" onclick="saveConfig()">Guardar Configuración</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conductor Dashboard -->
+            <div id="conductorDashboard" class="hidden">
+                <div class="menu-grid">
+                    <div class="menu-card" onclick="showCreateOrder()">
+                        <div style="font-size: 40px; color: #667eea; margin-bottom: 15px;">📝</div>
+                        <h3>Nueva Orden de Movilización</h3>
+                        <p>Crear nueva orden de movilización</p>
+                    </div>
+                    <div class="menu-card" onclick="showMyOrders()">
+                        <div style="font-size: 40px; color: #667eea; margin-bottom: 15px;">📋</div>
+                        <h3>Mis Órdenes</h3>
+                        <p>Ver historial de órdenes creadas</p>
+                    </div>
+                </div>
+
+                <!-- Create Order Form -->
+                <div id="createOrderForm" class="hidden">
+                    <h3 style="margin-bottom: 20px;">Nueva Orden de Movilización</h3>
+                    <form id="orderForm">
+                        <div class="form-section">
+                            <h3>Información de la Entidad</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Nombre de la Entidad</label>
+                                    <input type="text" value="DIRECCIÓN DISTRITAL 08D01 ESMERALDAS MAGP" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label>Dirección</label>
+                                    <input type="text" value="PEDRO VIVENTE MALDONADO Y MANUELA CAÑIZAREZ" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label>Teléfono</label>
+                                    <input type="text" value="063700590 Ext. 6" readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3>Información de la Comisión</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="required">Nombre de quien realiza la solicitud</label>
+                                    <input type="text" id="solicitanteNombre" required>
+                                    <span class="error-message">Campo obligatorio</span>
+                                </div>
+                                <div class="form-group">
+                                    <label class="required">Número de memorando de solicitud</label>
+                                    <input type="text" id="memorandoNumero" required>
+                                    <span class="error-message">Campo obligatorio</span>
+                                </div>
+                                <div class="form-group">
+                                    <label class="required">Nombre del Presidente de la Comisión</label>
+                                    <input type="text" id="presidenteComision" required>
+                                    <span class="error-message">Campo obligatorio</span>
+                                </div>
+                                <div class="form-group">
+                                    <label class="required">Número de integrantes</label>
+                                    <input type="number" id="numIntegrantes" min="1" required>
+                                    <span class="error-message">Campo obligatorio</span>
+                                </div>
+                                <div class="form-group" style="grid-column: 1 / -1;">
+                                    <label class="required">Nombres de los integrantes</label>
+                                    <textarea id="nombresIntegrantes" rows="3" required></textarea>
+                                    <span class="error-message">Campo obligatorio</span>
+                                </div>
+                                <div class="form-group" style="grid-column: 1 / -1;">
+                                    <label class="required">Motivo de la comisión</label>
+                                    <textarea id="motivoComision" rows="3" required></textarea>
+                                    <span class="error-message">Campo obligatorio</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3>Información del Conductor</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Nombre del Conductor</label>
+                                    <input type="text" id="conductorNombre" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label>Apellidos del Conductor</label>
+                                    <input type="text" id="conductorApellidos" readonly>
+                                </div>
+                                <div class="form-group">
+                                    <label class="required">Tipo de Licencia</label>
+                                    <select id="tipoLicencia" required>
+                                        <option value="">Seleccione...</option>
+                                        <option value="A">A</option>
+                                        <option value="B">B</option>
+                                        <option value="C">C</option>
+                                        <option value="E">E</option>
+                                        <option value="F">F</option>
+                                    </select>
+                                    <span class="error-message">Campo obligatorio</span>
+                                </div>
+                                <div class="form-group">
+                                    <label class="required">¿Licencia vigente?</label>
+                                    <select id="licenciaVigente" required>
+                                        <option value="">Seleccione...</option>
+                                        <option value="SI">SÍ</option>
+                                        <option value="NO">NO</option>
+                                    </select>
+                                    <span class="error-message">Campo obligatorio</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3>Información del Vehículo</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="required">Marca del Vehículo</label>
+                                    <input type="text" id="marcaVehiculo" required>
+                                    <span class="error-message">Campo obligatorio</span>
+                                </div>
+                                <div class="form-group">
+                                    <label class="required">Modelo del Vehículo</label>
+                                    <input type="text" id="modeloVehiculo" required>
+                                    <span class="error-message">Campo obligatorio</span>
+                                </div>
+                                <div class="form-group">
+                                    <label class="required">Placa del Vehículo</label>
+                                    <input type="text" id="placaVehiculo" required>
+                                    <span class="error-message">Campo obligatorio</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3>Detalles del Viaje</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="required">Lugar de origen</label>
+                                    <input type="text" id="lugarOrigen" required>
+                                    <span class="error-message">Campo obligatorio</span>
+                                </div>
+                                <div class="form-group">
+                                    <label class="required">Dirección de origen</label>
+                                    <input type="text" id="direccionOrigen" required>
+                                    <span class="error-message">Campo obligatorio</span>
+                                </div>
+                                <div class="form-group">
+                                    <label class="required">Destino</label>
+                                    <input type="text" id="destino" required>
+                                    <span class="error-message">Campo obligatorio</span>
+                                </div>
+                                <div class="form-group">
+                                    <label class="required">Hora de salida</label>
+                                    <input type="time" id="horaSalida" required>
+                                    <span class="error-message">Campo obligatorio</span>
+                                </div>
+                                <div class="form-group">
+                                    <label class="required">Hora de llegada</label>
+                                    <input type="time" id="horaLlegada" required>
+                                    <span class="error-message">Campo obligatorio</span>
+                                </div>
+                                <div class="form-group">
+                                    <label class="required">Kilometraje al salir</label>
+                                    <input type="number" id="kmSalida" min="0" required>
+                                    <span class="error-message">Campo obligatorio</span>
+                                </div>
+                                <div class="form-group">
+                                    <label class="required">Kilometraje al llegar</label>
+                                    <input type="number" id="kmLlegada" min="0" required>
+                                    <span class="error-message">Campo obligatorio</span>
+                                </div>
+                                <div class="form-group">
+                                    <label class="required">Fecha de llenado</label>
+                                    <input type="date" id="fechaLlenado" required>
+                                    <span class="error-message">Campo obligatorio</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3>Firma Electrónica del Conductor</h3>
+                            <p style="margin-bottom: 15px; color: #7f8c8d;">Al guardar esta orden, se registrará su firma electrónica con los siguientes datos:</p>
+                            <div class="signature-display" id="conductorSignatureDisplay">
+                                Firma Digital del Conductor
+                            </div>
+                            <p style="margin-top: 10px; font-size: 12px; color: #95a5a6;">
+                                Se requiere su usuario y contraseña para validar la firma
+                            </p>
+                        </div>
+
+                        <div style="margin-top: 30px;">
+                            <button type="submit" class="btn btn-success">Guardar y Firmar Orden</button>
+                            <button type="button" class="btn btn-secondary" onclick="cancelOrder()">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- My Orders List -->
+                <div id="myOrdersList" class="hidden">
+                    <h3 style="margin-bottom: 20px;">Mis Órdenes de Movilización</h3>
+                    <div class="order-list">
+                        <table id="myOrdersTable">
+                            <thead>
+                                <tr>
+                                    <th>N° Orden</th>
+                                    <th>Fecha</th>
+                                    <th>Destino</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="myOrdersTableBody"></tbody>
+                        </table>
+                    </div>
+                    <button class="btn btn-secondary" onclick="showConductorMenu()" style="margin-top: 20px;">Volver al Menú</button>
+                </div>
+            </div>
+
+            <!-- Responsable Transporte Dashboard -->
+            <div id="transporteDashboard" class="hidden">
+                <div class="menu-grid">
+                    <div class="menu-card" onclick="showPendingOrdersTransporte()">
+                        <div style="font-size: 40px; color: #667eea; margin-bottom: 15px;">⏳</div>
+                        <h3>Órdenes Pendientes</h3>
+                        <p>Órdenes esperando firma</p>
+                    </div>
+                    <div class="menu-card" onclick="showSignedOrdersTransporte()">
+                        <div style="font-size: 40px; color: #667eea; margin-bottom: 15px;">✅</div>
+                        <h3>Órdenes Firmadas</h3>
+                        <p>Historial de órdenes procesadas</p>
+                    </div>
+                    <div class="menu-card" onclick="showArchivedOrders()">
+                        <div style="font-size: 40px; color: #667eea; margin-bottom: 15px;">📁</div>
+                        <h3>Órdenes Archivadas</h3>
+                        <p>Órdenes completamente firmadas</p>
+                    </div>
+                </div>
+
+                <div id="pendingOrdersTransporte" class="hidden">
+                    <h3 style="margin-bottom: 20px;">Órdenes Pendientes de Firma</h3>
+                    <div class="order-list">
+                        <table id="pendingTransporteTable">
+                            <thead>
+                                <tr>
+                                    <th>N° Orden</th>
+                                    <th>Fecha</th>
+                                    <th>Conductor</th>
+                                    <th>Destino</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pendingTransporteTableBody"></tbody>
+                        </table>
+                    </div>
+                    <button class="btn btn-secondary" onclick="showTransporteMenu()" style="margin-top: 20px;">Volver</button>
+                </div>
+            </div>
+
+            <!-- Jefe Financiero Dashboard -->
+            <div id="financieroDashboard" class="hidden">
+                <div class="menu-grid">
+                    <div class="menu-card" onclick="showPendingAuthorization()">
+                        <div style="font-size: 40px; color: #667eea; margin-bottom: 15px;">🔐</div>
+                        <h3>Pendientes de Autorización</h3>
+                        <p>Órdenes para autorizar salida</p>
+                    </div>
+                    <div class="menu-card" onclick="showAuthorizedOrders()">
+                        <div style="font-size: 40px; color: #667eea; margin-bottom: 15px;">📊</div>
+                        <h3>Órdenes Autorizadas</h3>
+                        <p>Historial de autorizaciones</p>
+                    </div>
+                </div>
+
+                <div id="pendingAuthorizationList" class="hidden">
+                    <h3 style="margin-bottom: 20px;">Órdenes Pendientes de Autorización</h3>
+                    <div class="order-list">
+                        <table id="pendingAuthTable">
+                            <thead>
+                                <tr>
+                                    <th>N° Orden</th>
+                                    <th>Fecha</th>
+                                    <th>Conductor</th>
+                                    <th>Destino</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pendingAuthTableBody"></tbody>
+                        </table>
+                    </div>
+                    <button class="btn btn-secondary" onclick="showFinancieroMenu()" style="margin-top: 20px;">Volver</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Detail Modal -->
+        <div id="orderModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <div id="orderDetailContent"></div>
+            </div>
+        </div>
+
+        <!-- PDF Preview Container (Hidden) -->
+        <div id="pdfContent" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Base de datos de usuarios inicial (86 usuarios + admin)
+        const initialUsers = [
+            { cedula: "0801550096", nombre: "ROBERTO ANTONIO DAZA SICHIQUE", rol: "administrador", password: "0801550096", activo: true },
+            { cedula: "0801671090", nombre: "CHICA VALENCIA AMABLE ANTONIO", rol: "conductor", password: "0801671090", activo: true },
+            { cedula: "1311423683", nombre: "MARCILLO OCHOA EDUARDO JAVIER", rol: "conductor", password: "1311423683", activo: true },
+            { cedula: "0801587890", nombre: "VALVERDE SANCHEZ CARLOS EDUARDO", rol: "conductor", password: "0801587890", activo: true },
+            { cedula: "0802872598", nombre: "ESPINOZA LOZA LENNY PRISCILA", rol: "conductor", password: "0802872598", activo: true },
+            { cedula: "0802440495", nombre: "CEDEÑO REQUENE CARMEN ISABEL", rol: "conductor", password: "0802440495", activo: true },
+            { cedula: "0914087879", nombre: "BAZAN PRECIADO JECICA ELENA", rol: "conductor", password: "0914087879", activo: true },
+            { cedula: "0800899536", nombre: "VALENCIA CAICEDO COLON FRANCISCO", rol: "conductor", password: "0800899536", activo: true },
+            { cedula: "1304230343", nombre: "RIVERA ESCOBEDO ARTURO JOHNNY", rol: "conductor", password: "1304230343", activo: true },
+            { cedula: "0801666371", nombre: "PADILLA CHUQUIMARCA MARTHA ESTRELLA", rol: "conductor", password: "0801666371", activo: true },
+            { cedula: "0802320606", nombre: "CAMPOS OBANDO FLOR MARIA", rol: "conductor", password: "0802320606", activo: true },
+            { cedula: "0802159962", nombre: "ESTUPIÑAN DIAZ NELSON PAUL", rol: "conductor", password: "0802159962", activo: true },
+            { cedula: "0802259416", nombre: "QUIÑONEZ CUERO JENIFER NATALIA", rol: "conductor", password: "0802259416", activo: true },
+            { cedula: "0801461740", nombre: "FONSECA PINARGOTE GARY LOBERTTY", rol: "conductor", password: "0801461740", activo: true },
+            { cedula: "0802860221", nombre: "YELA ANGULO JESSICA OLINDA", rol: "conductor", password: "0802860221", activo: true },
+            { cedula: "0000000001", nombre: "SOLIS MENDEZ GINA MARIEL", rol: "transporte", password: "0000000001", activo: true },
+            { cedula: "0801822552", nombre: "MERA ESTERILLA MILTON ESTALIN", rol: "conductor", password: "0801822552", activo: true },
+            { cedula: "0804371664", nombre: "CASTRO BONE MARIA GABRIELA", rol: "conductor", password: "0804371664", activo: true },
+            { cedula: "0804497238", nombre: "CAICEDO CAICEDO HENRRY DAVID", rol: "conductor", password: "0804497238", activo: true },
+            { cedula: "0803463587", nombre: "DELGADO MENDOZA MARIA ANGELICA", rol: "conductor", password: "0803463587", activo: true },
+            { cedula: "0803290352", nombre: "GUERRERO DE LA CRUZ JOSE GUILBERT", rol: "conductor", password: "0803290352", activo: true },
+            { cedula: "0801587338", nombre: "ESTRELLA VALDERRAMA ANDRES FELIPE", rol: "conductor", password: "0801587338", activo: true },
+            { cedula: "0802547018", nombre: "ZAMBRANO VILELA MARIO ALEXANDER", rol: "conductor", password: "0802547018", activo: true },
+            { cedula: "0802881094", nombre: "ARGUELLO TELLO JORGE ANDRES", rol: "conductor", password: "0802881094", activo: true },
+            { cedula: "1720782653", nombre: "SEGURA BENAVIDES SOFIA RAQUEL", rol: "conductor", password: "1720782653", activo: true },
+            { cedula: "0802236471", nombre: "ALAVA MURILLO DORA MARITZA", rol: "conductor", password: "0802236471", activo: true },
+            { cedula: "0801104977", nombre: "ANGULO WININTER FRIXON REMBERTO", rol: "conductor", password: "0801104977", activo: true },
+            { cedula: "0804393635", nombre: "CAICEDO AYOVI JAIDAN MARLON", rol: "conductor", password: "0804393635", activo: true },
+            { cedula: "1003613526", nombre: "MATOS FUENTES HENRY MELECIO", rol: "conductor", password: "1003613526", activo: true },
+            { cedula: "0801686361", nombre: "MIRANDA QUINTERO PABLO CESAR", rol: "conductor", password: "0801686361", activo: true },
+            { cedula: "0800673220", nombre: "MONTAÑO ESTACIO NEFER ROSENDA", rol: "conductor", password: "0800673220", activo: true },
+            { cedula: "0803138544", nombre: "MERCADO QUIÑONES MARTHA ANDREA", rol: "conductor", password: "0803138544", activo: true },
+            { cedula: "1725888554", nombre: "MOREIRA MOROCHO ALEXIS DARIO", rol: "conductor", password: "1725888554", activo: true },
+            { cedula: "0802577858", nombre: "MOREIRA QUIÑONEZ JOHN ALEJANDRO", rol: "conductor", password: "0802577858", activo: true },
+            { cedula: "0802772806", nombre: "NEVAREZ AVELLAN GILMER JAVIER", rol: "conductor", password: "0802772806", activo: true },
+            { cedula: "0926011941", nombre: "ORELLANA BUESTAN ROXANA VANESSA", rol: "conductor", password: "0926011941", activo: true },
+            { cedula: "0802311357", nombre: "ORTIZ ZAMBRANO PABLO XAVIER", rol: "conductor", password: "0802311357", activo: true },
+            { cedula: "0802588582", nombre: "PARRALES VALENZUELA DAVID ALEXANDER", rol: "conductor", password: "0802588582", activo: true },
+            { cedula: "2300505803", nombre: "PALMA PINCAY JOHN HENRY", rol: "conductor", password: "2300505803", activo: true },
+            { cedula: "0802275099", nombre: "QUIÑONEZ AYOVI GLORIA DIXIANA", rol: "conductor", password: "0802275099", activo: true },
+            { cedula: "0802774158", nombre: "QUIÑONEZ SAAVEDRA MARCELO ALEJANDRO", rol: "conductor", password: "0802774158", activo: true },
+            { cedula: "1716820632", nombre: "QUISHPE CAÑAR IVAN SANTIAGO", rol: "conductor", password: "1716820632", activo: true },
+            { cedula: "0802605931", nombre: "QUIROZ ALAVA DIEGO ARMANDO", rol: "conductor", password: "0802605931", activo: true },
+            { cedula: "0802507079", nombre: "RAMIREZ VALENCIA JACKSON ULISES", rol: "conductor", password: "0802507079", activo: true },
+            { cedula: "0802328666", nombre: "REYES JAMA FIDEL PATRICIO", rol: "conductor", password: "0802328666", activo: true },
+            { cedula: "0801861006", nombre: "ROSALES MOREIRA DAVID ROLANDO", rol: "conductor", password: "0801861006", activo: true },
+            { cedula: "1309695276", nombre: "RODRIGUEZ HIDALGO ERNESTO ANTONIO", rol: "conductor", password: "1309695276", activo: true },
+            { cedula: "0850584517", nombre: "VELEZ ROSADO WELLINGTON JAVIER", rol: "conductor", password: "0850584517", activo: true },
+            { cedula: "0801890039", nombre: "VALDEZ CAICEDO VRIMAN ESPAÑA", rol: "conductor", password: "0801890039", activo: true },
+            { cedula: "1304194283", nombre: "ZAMBRANO CHAVEZ CRISTOBAL COLON", rol: "conductor", password: "1304194283", activo: true },
+            { cedula: "0800858490", nombre: "ALVAREZ SEVILLANO FELIX ARCESIO", rol: "conductor", password: "0800858490", activo: true },
+            { cedula: "0919043182", nombre: "CABRERA ORRALA RONALD ULISES", rol: "conductor", password: "0919043182", activo: true },
+            { cedula: "0802138222", nombre: "CAICEDO MERLIN DARIO JAVIER", rol: "conductor", password: "0802138222", activo: true },
+            { cedula: "1309587309", nombre: "FALCONES RIVERO DANIEL SIGIFREDO", rol: "conductor", password: "1309587309", activo: true },
+            { cedula: "1312187592", nombre: "INTRIAGO BRITO JONATHAN ADRIAN", rol: "conductor", password: "1312187592", activo: true },
+            { cedula: "0801252073", nombre: "MINA ARBOLEDA ABEL EFREN", rol: "conductor", password: "0801252073", activo: true },
+            { cedula: "0802772129", nombre: "RAMIREZ TIMARAN DIANA JOANNA", rol: "conductor", password: "0802772129", activo: true },
+            { cedula: "1311542516", nombre: "TIPAN ALCIVAR LUIS ALBERTO", rol: "conductor", password: "1311542516", activo: true },
+            { cedula: "0801611880", nombre: "ANDRADE PEREA LUIS ENRIQUE", rol: "conductor", password: "0801611880", activo: true },
+            { cedula: "0803150259", nombre: "CAMACHO TELLO KAREN INDIRA", rol: "conductor", password: "0803150259", activo: true },
+            { cedula: "0802132696", nombre: "HIDALGO VERA ANGEL KLEBER", rol: "conductor", password: "0802132696", activo: true },
+            { cedula: "1206243782", nombre: "JIMENEZ GUERRERO JEFFERSON FABRICIO", rol: "conductor", password: "1206243782", activo: true },
+            { cedula: "0803805613", nombre: "PRADO BONE YILIO ALBERTO", rol: "conductor", password: "0803805613", activo: true },
+            { cedula: "0802679654", nombre: "VIVAR SOSA EDDY DANIEL", rol: "conductor", password: "0802679654", activo: true },
+            { cedula: "1313572313", nombre: "GARCIA ARTEAGA RODRIGO ANDRES", rol: "conductor", password: "1313572313", activo: true },
+            { cedula: "1311660714", nombre: "BRIONES ALAVA CESAR OSWALDO", rol: "conductor", password: "1311660714", activo: true },
+            { cedula: "0801883026", nombre: "BARREZUETA MALDONADO ALEXIS ALBERTO", rol: "conductor", password: "0801883026", activo: true },
+            { cedula: "1712295904", nombre: "LOOR DAVILA DANILO ANDRE", rol: "conductor", password: "1712295904", activo: true },
+            { cedula: "1726634544", nombre: "ARIAS SALAMEA ADRIAN ALEJANDRO", rol: "conductor", password: "1726634544", activo: true },
+            { cedula: "0803129865", nombre: "TREJO MONTAÑO ERICK ADRIAN", rol: "conductor", password: "0803129865", activo: true },
+            { cedula: "0802521153", nombre: "CEDEÑO PORTOCARRERO JAVIER EMILIO", rol: "conductor", password: "0802521153", activo: true },
+            { cedula: "0802130799", nombre: "QUINTERO ALAVA FRANK", rol: "conductor", password: "0802130799", activo: true },
+            { cedula: "0802834804", nombre: "CASTILLO OLIVO DARWIN FABRICIO", rol: "conductor", password: "0802834804", activo: true },
+            { cedula: "0802836296", nombre: "CHICA RAMIREZ FELIX PAUL", rol: "conductor", password: "0802836296", activo: true },
+            { cedula: "0801534363", nombre: "MOSQUERA CUERO MARYS YAQUELINE", rol: "conductor", password: "0801534363", activo: true },
+            { cedula: "0804569093", nombre: "AVELLAN REALPE AQUILES ELIAS", rol: "conductor", password: "0804569093", activo: true },
+            { cedula: "0802077651", nombre: "ZAMBRANO ROSERO ANTONIO SIGIFREDO", rol: "conductor", password: "0802077651", activo: true },
+            { cedula: "0804374346", nombre: "COELLO ZAMBRANO KIMBERLY CRISTINA", rol: "conductor", password: "0804374346", activo: true },
+            { cedula: "0941574428", nombre: "REYES RODRIGUEZ JAZMIN YANINE", rol: "conductor", password: "0941574428", activo: true },
+            { cedula: "0801712282", nombre: "ANGULO ALEGRIA JACOB CLEOFE", rol: "conductor", password: "0801712282", activo: true },
+            { cedula: "0802018069", nombre: "JAMA ALVEAR GINO CLEMENTE", rol: "conductor", password: "0802018069", activo: true },
+            { cedula: "0802503375", nombre: "GAMEZ LEMA ALEX MARCOS", rol: "conductor", password: "0802503375", activo: true },
+            { cedula: "0801758756", nombre: "LARA QUIÑONEZ FABRICIO REGULO", rol: "conductor", password: "0801758756", activo: true },
+            { cedula: "0803235548", nombre: "GRACIA PALACIOS MARIA ROSA", rol: "conductor", password: "0803235548", activo: true },
+            { cedula: "0802944686", nombre: "QUIÑONEZ FLORES LEIDY TAMARA", rol: "conductor", password: "0802944686", activo: true },
+            { cedula: "0000000002", nombre: "JEFE FINANCIERO", rol: "financiero", password: "0000000002", activo: true }
+        ];
+
+        // Estado global
+        let currentUser = null;
+        let users = [];
+        let orders = [];
+        let jefeFinancieroName = "JEFE FINANCIERO";
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            setupEventListeners();
+        });
+
+        function loadData() {
+            // Cargar usuarios desde localStorage o usar los iniciales
+            const savedUsers = localStorage.getItem('movilizacion_users');
+            if (savedUsers) {
+                users = JSON.parse(savedUsers);
+            } else {
+                users = [...initialUsers];
+                saveUsers();
+            }
+
+            // Cargar órdenes
+            const savedOrders = localStorage.getItem('movilizacion_orders');
+            if (savedOrders) {
+                orders = JSON.parse(savedOrders);
+            }
+
+            // Cargar configuración
+            const savedConfig = localStorage.getItem('movilizacion_config');
+            if (savedConfig) {
+                const config = JSON.parse(savedConfig);
+                jefeFinancieroName = config.jefeFinancieroName || "JEFE FINANCIERO";
+            }
+        }
+
+        function saveUsers() {
+            localStorage.setItem('movilizacion_users', JSON.stringify(users));
+        }
+
+        function saveOrders() {
+            localStorage.setItem('movilizacion_orders', JSON.stringify(orders));
+        }
+
+        function saveConfig() {
+            const config = {
+                jefeFinancieroName: document.getElementById('jefeFinancieroName').value || "JEFE FINANCIERO"
+            };
+            localStorage.setItem('movilizacion_config', JSON.stringify(config));
+            jefeFinancieroName = config.jefeFinancieroName;
+            showAlert('Configuración guardada exitosamente', 'success');
+        }
+
+        function setupEventListeners() {
+            // Login
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+            
+            // Forgot password
+            document.getElementById('forgotPasswordForm').addEventListener('submit', handlePasswordChange);
+            
+            // Create user (admin)
+            document.getElementById('createUserForm')?.addEventListener('submit', handleCreateUser);
+            
+            // Create order (conductor)
+            document.getElementById('orderForm')?.addEventListener('submit', handleCreateOrder);
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const cedula = document.getElementById('loginCedula').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            const user = users.find(u => u.cedula === cedula && u.password === password && u.activo);
+
+            if (user) {
+                currentUser = user;
+                showDashboard();
+            } else {
+                showAlert('Cédula o contraseña incorrectos', 'error');
+            }
+        }
+
+        function showDashboard() {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('forgotPasswordSection').classList.add('hidden');
+            document.getElementById('dashboardSection').classList.remove('hidden');
+
+            // Actualizar info de usuario
+            document.getElementById('userNameDisplay').textContent = currentUser.nombre;
+            document.getElementById('userCedulaDisplay').textContent = currentUser.cedula;
+            
+            const roleBadge = document.getElementById('userRoleDisplay');
+            roleBadge.textContent = currentUser.rol;
+            roleBadge.className = 'role-badge role-' + currentUser.rol;
+
+            // Mostrar dashboard según rol
+            document.getElementById('adminDashboard').classList.add('hidden');
+            document.getElementById('conductorDashboard').classList.add('hidden');
+            document.getElementById('transporteDashboard').classList.add('hidden');
+            document.getElementById('financieroDashboard').classList.add('hidden');
+
+            if (currentUser.rol === 'administrador') {
+                document.getElementById('adminDashboard').classList.remove('hidden');
+                loadAdminDashboard();
+            } else if (currentUser.rol === 'conductor') {
+                document.getElementById('conductorDashboard').classList.remove('hidden');
+                setupConductorDashboard();
+            } else if (currentUser.rol === 'transporte') {
+                document.getElementById('transporteDashboard').classList.remove('hidden');
+            } else if (currentUser.rol === 'financiero') {
+                document.getElementById('financieroDashboard').classList.remove('hidden');
+            }
+        }
+
+        function setupConductorDashboard() {
+            // Pre-llenar datos del conductor
+            const nombreParts = currentUser.nombre.split(' ');
+            const mitad = Math.ceil(nombreParts.length / 2);
+            const nombres = nombreParts.slice(0, mitad).join(' ');
+            const apellidos = nombreParts.slice(mitad).join(' ');
+
+            document.getElementById('conductorNombre').value = nombres;
+            document.getElementById('conductorApellidos').value = apellidos;
+            
+            // Mostrar firma
+            document.getElementById('conductorSignatureDisplay').textContent = currentUser.nombre;
+        }
+
+        function loadAdminDashboard() {
+            // Estadísticas
+            document.getElementById('totalUsers').textContent = users.length;
+            document.getElementById('totalOrders').textContent = orders.length;
+            document.getElementById('pendingOrders').textContent = orders.filter(o => o.estado !== 'archivado').length;
+
+            // Cargar tabla de usuarios
+            loadUsersTable();
+            
+            // Cargar configuración
+            document.getElementById('jefeFinancieroName').value = jefeFinancieroName;
+        }
+
+        function loadUsersTable() {
+            const tbody = document.getElementById('usersTableBody');
+            tbody.innerHTML = '';
+
+            users.forEach(user => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${user.cedula}</td>
+                    <td>${user.nombre}</td>
+                    <td><span class="role-badge role-${user.rol}">${user.rol}</span></td>
+                    <td>${user.activo ? 'Activo' : 'Inactivo'}</td>
+                    <td>
+                        <button class="btn btn-warning" onclick="resetPassword('${user.cedula}')" style="padding: 5px 10px; font-size: 12px;">Resetear Clave</button>
+                        ${user.rol !== 'administrador' ? `<button class="btn btn-danger" onclick="toggleUser('${user.cedula}')" style="padding: 5px 10px; font-size: 12px;">${user.activo ? 'Desactivar' : 'Activar'}</button>` : ''}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function handleCreateUser(e) {
+            e.preventDefault();
+            const cedula = document.getElementById('newUserCedula').value.trim();
+            const nombre = document.getElementById('newUserName').value.trim().toUpperCase();
+            const rol = document.getElementById('newUserRole').value;
+
+            if (users.find(u => u.cedula === cedula)) {
+                showAlert('Ya existe un usuario con esa cédula', 'error');
+                return;
+            }
+
+            users.push({
+                cedula: cedula,
+                nombre: nombre,
+                rol: rol,
+                password: cedula,
+                activo: true
+            });
+
+            saveUsers();
+            loadUsersTable();
+            document.getElementById('createUserForm').reset();
+            showAlert('Usuario creado exitosamente', 'success');
+        }
+
+        function resetPassword(cedula) {
+            const user = users.find(u => u.cedula === cedula);
+            if (user) {
+                user.password = cedula;
+                saveUsers();
+                showAlert(`Contraseña reseteada para ${user.nombre}`, 'success');
+            }
+        }
+
+        function toggleUser(cedula) {
+            const user = users.find(u => u.cedula === cedula);
+            if (user && user.rol !== 'administrador') {
+                user.activo = !user.activo;
+                saveUsers();
+                loadUsersTable();
+                showAlert(`Usuario ${user.activo ? 'activado' : 'desactivado'}`, 'success');
+            }
+        }
+
+        function showCreateOrder() {
+            document.getElementById('createOrderForm').classList.remove('hidden');
+            document.getElementById('myOrdersList').classList.add('hidden');
+            
+            // Generar número de orden secuencial
+            const conductorOrders = orders.filter(o => o.conductorCedula === currentUser.cedula);
+            const nextNum = conductorOrders.length + 1;
+            
+            // Establecer fecha actual
+            document.getElementById('fechaLlenado').valueAsDate = new Date();
+        }
+
+        function cancelOrder() {
+            document.getElementById('createOrderForm').classList.add('hidden');
+            document.getElementById('orderForm').reset();
+        }
+
+        function handleCreateOrder(e) {
+            e.preventDefault();
+
+            // Validar campos obligatorios
+            const requiredFields = [
+                'solicitanteNombre', 'memorandoNumero', 'presidenteComision', 
+                'numIntegrantes', 'nombresIntegrantes', 'motivoComision',
+                'tipoLicencia', 'licenciaVigente', 'marcaVehiculo', 'modeloVehiculo',
+                'placaVehiculo', 'lugarOrigen', 'direccionOrigen', 'destino',
+                'horaSalida', 'horaLlegada', 'kmSalida', 'kmLlegada', 'fechaLlenado'
+            ];
+
+            let valid = true;
+            requiredFields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (!field.value.trim()) {
+                    valid = false;
+                    field.style.borderColor = '#e74c3c';
+                    const errorMsg = field.nextElementSibling;
+                    if (errorMsg && errorMsg.classList.contains('error-message')) {
+                        errorMsg.style.display = 'block';
+                    }
+                } else {
+                    field.style.borderColor = '#e0e0e0';
+                    const errorMsg = field.nextElementSibling;
+                    if (errorMsg && errorMsg.classList.contains('error-message')) {
+                        errorMsg.style.display = 'none';
+                    }
+                }
+            });
+
+            if (!valid) {
+                showAlert('Por favor complete todos los campos obligatorios', 'error');
+                return;
+            }
+
+            // Generar número de orden
+            const conductorOrders = orders.filter(o => o.conductorCedula === currentUser.cedula);
+            const orderNumber = `${currentUser.cedula}-${String(conductorOrders.length + 1).padStart(3, '0')}`;
+
+            const order = {
+                id: Date.now().toString(),
+                numeroOrden: orderNumber,
+                fechaCreacion: new Date().toISOString(),
+                
+                // Entidad
+                entidadNombre: "DIRECCIÓN DISTRITAL 08D01 ESMERALDAS MAGP",
+                entidadDireccion: "PEDRO VIVENTE MALDONADO Y MANUELA CAÑIZAREZ",
+                entidadTelefono: "063700590 Ext. 6",
+                
+                // Comisión
+                solicitanteNombre: document.getElementById('solicitanteNombre').value.toUpperCase(),
+                memorandoNumero: document.getElementById('memorandoNumero').value.toUpperCase(),
+                presidenteComision: document.getElementById('presidenteComision').value.toUpperCase(),
+                numIntegrantes: document.getElementById('numIntegrantes').value,
+                nombresIntegrantes: document.getElementById('nombresIntegrantes').value.toUpperCase(),
+                motivoComision: document.getElementById('motivoComision').value.toUpperCase(),
+                
+                // Conductor
+                conductorCedula: currentUser.cedula,
+                conductorNombre: document.getElementById('conductorNombre').value.toUpperCase(),
+                conductorApellidos: document.getElementById('conductorApellidos').value.toUpperCase(),
+                tipoLicencia: document.getElementById('tipoLicencia').value,
+                licenciaVigente: document.getElementById('licenciaVigente').value,
+                
+                // Vehículo
+                marcaVehiculo: document.getElementById('marcaVehiculo').value.toUpperCase(),
+                modeloVehiculo: document.getElementById('modeloVehiculo').value.toUpperCase(),
+                placaVehiculo: document.getElementById('placaVehiculo').value.toUpperCase(),
+                
+                // Viaje
+                lugarOrigen: document.getElementById('lugarOrigen').value.toUpperCase(),
+                direccionOrigen: document.getElementById('direccionOrigen').value.toUpperCase(),
+                destino: document.getElementById('destino').value.toUpperCase(),
+                horaSalida: document.getElementById('horaSalida').value,
+                horaLlegada: document.getElementById('horaLlegada').value,
+                kmSalida: document.getElementById('kmSalida').value,
+                kmLlegada: document.getElementById('kmLlegada').value,
+                fechaLlenado: document.getElementById('fechaLlenado').value,
+                
+                // Firmas
+                firmaConductor: currentUser.nombre,
+                firmaConductorFecha: new Date().toISOString(),
+                firmaTransporte: null,
+                firmaTransporteFecha: null,
+                firmaFinanciero: null,
+                firmaFinancieroFecha: null,
+                
+                // Estado
+                estado: 'firmado-conductor'
+            };
+
+            orders.push(order);
+            saveOrders();
+
+            showAlert(`Orden ${orderNumber} creada y firmada exitosamente`, 'success');
+            cancelOrder();
+        }
+
+        function showMyOrders() {
+            document.getElementById('createOrderForm').classList.add('hidden');
+            document.getElementById('myOrdersList').classList.remove('hidden');
+
+            const tbody = document.getElementById('myOrdersTableBody');
+            tbody.innerHTML = '';
+
+            const myOrders = orders.filter(o => o.conductorCedula === currentUser.cedula)
+                                  .sort((a, b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion));
+
+            myOrders.forEach(order => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${order.numeroOrden}</td>
+                    <td>${formatDate(order.fechaLlenado)}</td>
+                    <td>${order.destino}</td>
+                    <td class="status-${order.estado.replace('-', '-')}">${getStatusText(order.estado)}</td>
+                    <td>
+                        <button class="btn" onclick="viewOrder('${order.id}')" style="padding: 5px 10px; font-size: 12px;">Ver</button>
+                        ${order.estado === 'firmado-conductor' ? `<button class="btn btn-success" onclick="sendToTransporte('${order.id}')" style="padding: 5px 10px; font-size: 12px;">Enviar a Transporte</button>` : ''}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function sendToTransporte(orderId) {
+            const order = orders.find(o => o.id === orderId);
+            if (order) {
+                order.estado = 'enviado-transporte';
+                saveOrders();
+                showMyOrders();
+                showAlert('Orden enviada al Responsable de Transporte', 'success');
+            }
+        }
+
+        function showPendingOrdersTransporte() {
+            document.getElementById('transporteDashboard').classList.add('hidden');
+            document.getElementById('pendingOrdersTransporte').classList.remove('hidden');
+
+            const tbody = document.getElementById('pendingTransporteTableBody');
+            tbody.innerHTML = '';
+
+            const pendingOrders = orders.filter(o => o.estado === 'enviado-transporte');
+
+            pendingOrders.forEach(order => {
+                const conductor = users.find(u => u.cedula === order.conductorCedula);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${order.numeroOrden}</td>
+                    <td>${formatDate(order.fechaLlenado)}</td>
+                    <td>${conductor ? conductor.nombre : 'N/A'}</td>
+                    <td>${order.destino}</td>
+                    <td>
+                        <button class="btn" onclick="viewOrder('${order.id}')" style="padding: 5px 10px; font-size: 12px;">Ver</button>
+                        <button class="btn btn-success" onclick="firmarTransporte('${order.id}')" style="padding: 5px 10px; font-size: 12px;">Firmar</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function firmarTransporte(orderId) {
+            const order = orders.find(o => o.id === orderId);
+            if (order) {
+                order.firmaTransporte = "FIRMADO ELECTRÓNICAMENTE";
+                order.firmaTransporteFecha = new Date().toISOString();
+                order.estado = 'firmado-transporte';
+                saveOrders();
+                showPendingOrdersTransporte();
+                showAlert('Orden firmada exitosamente', 'success');
+            }
+        }
+
+        function showPendingAuthorization() {
+            document.getElementById('financieroDashboard').classList.add('hidden');
+            document.getElementById('pendingAuthorizationList').classList.remove('hidden');
+
+            const tbody = document.getElementById('pendingAuthTableBody');
+            tbody.innerHTML = '';
+
+            const pendingOrders = orders.filter(o => o.estado === 'firmado-transporte');
+
+            pendingOrders.forEach(order => {
+                const conductor = users.find(u => u.cedula === order.conductorCedula);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${order.numeroOrden}</td>
+                    <td>${formatDate(order.fechaLlenado)}</td>
+                    <td>${conductor ? conductor.nombre : 'N/A'}</td>
+                    <td>${order.destino}</td>
+                    <td>
+                        <button class="btn" onclick="viewOrder('${order.id}')" style="padding: 5px 10px; font-size: 12px;">Ver</button>
+                        <button class="btn btn-success" onclick="autorizarFinanciero('${order.id}')" style="padding: 5px 10px; font-size: 12px;">Autorizar</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function autorizarFinanciero(orderId) {
+            const order = orders.find(o => o.id === orderId);
+            if (order) {
+                order.firmaFinanciero = jefeFinancieroName;
+                order.firmaFinancieroFecha = new Date().toISOString();
+                order.estado = 'autorizado';
+                saveOrders();
+                showPendingAuthorization();
+                showAlert('Orden autorizada exitosamente', 'success');
+            }
+        }
+
+        function viewOrder(orderId) {
+            const order = orders.find(o => o.id === orderId);
+            if (!order) return;
+
+            const modal = document.getElementById('orderModal');
+            const content = document.getElementById('orderDetailContent');
+            
+            const conductor = users.find(u => u.cedula === order.conductorCedula);
+
+            content.innerHTML = `
+                <div class="pdf-preview">
+                    <div class="pdf-header">
+                        <h1>DIRECCIÓN DISTRITAL 08D01 ESMERALDAS MAGP</h1>
+                        <h2>ORDEN DE MOVILIZACIÓN N° ${order.numeroOrden}</h2>
+                        <div id="qrcode" style="margin-top: 20px;"></div>
+                    </div>
+
+                    <div class="pdf-section">
+                        <h3>INFORMACIÓN DE LA ENTIDAD</h3>
+                        <div class="pdf-field">
+                            <span class="pdf-label">Nombre:</span>
+                            <span class="pdf-value">${order.entidadNombre}</span>
+                        </div>
+                        <div class="pdf-field">
+                            <span class="pdf-label">Dirección:</span>
+                            <span class="pdf-value">${order.entidadDireccion}</span>
+                        </div>
+                        <div class="pdf-field">
+                            <span class="pdf-label">Teléfono:</span>
+                            <span class="pdf-value">${order.entidadTelefono}</span>
+                        </div>
+                    </div>
+
+                    <div class="pdf-section">
+                        <h3>INFORMACIÓN DE LA COMISIÓN</h3>
+                        <div class="pdf-field">
+                            <span class="pdf-label">Solicitante:</span>
+                            <span class="pdf-value">${order.solicitanteNombre}</span>
+                        </div>
+                        <div class="pdf-field">
+                            <span class="pdf-label">Memorando N°:</span>
+                            <span class="pdf-value">${order.memorandoNumero}</span>
+                        </div>
+                        <div class="pdf-field">
+                            <span class="pdf-label">Presidente:</span>
+                            <span class="pdf-value">${order.presidenteComision}</span>
+                        </div>
+                        <div class="pdf-field">
+                            <span class="pdf-label">Integrantes:</span>
+                            <span class="pdf-value">${order.numIntegrantes} - ${order.nombresIntegrantes}</span>
+                        </div>
+                        <div class="pdf-field">
+                            <span class="pdf-label">Motivo:</span>
+                            <span class="pdf-value">${order.motivoComision}</span>
+                        </div>
+                    </div>
+
+                    <div class="pdf-section">
+                        <h3>INFORMACIÓN DEL CONDUCTOR</h3>
+                        <div class="pdf-field">
+                            <span class="pdf-label">Nombre:</span>
+                            <span class="pdf-value">${order.conductorNombre} ${order.conductorApellidos}</span>
+                        </div>
+                        <div class="pdf-field">
+                            <span class="pdf-label">Licencia:</span>
+                            <span class="pdf-value">Tipo ${order.tipoLicencia} - ${order.licenciaVigente === 'SI' ? 'VIGENTE' : 'NO VIGENTE'}</span>
+                        </div>
+                    </div>
+
+                    <div class="pdf-section">
+                        <h3>INFORMACIÓN DEL VEHÍCULO</h3>
+                        <div class="pdf-field">
+                            <span class="pdf-label">Marca/Modelo:</span>
+                            <span class="pdf-value">${order.marcaVehiculo} / ${order.modeloVehiculo}</span>
+                        </div>
+                        <div class="pdf-field">
+                            <span class="pdf-label">Placa:</span>
+                            <span class="pdf-value">${order.placaVehiculo}</span>
+                        </div>
+                    </div>
+
+                    <div class="pdf-section">
+                        <h3>DETALLES DEL VIAJE</h3>
+                        <div class="pdf-field">
+                            <span class="pdf-label">Origen:</span>
+                            <span class="pdf-value">${order.lugarOrigen} - ${order.direccionOrigen}</span>
+                        </div>
+                        <div class="pdf-field">
+                            <span class="pdf-label">Destino:</span>
+                            <span class="pdf-value">${order.destino}</span>
+                        </div>
+                        <div class="pdf-field">
+                            <span class="pdf-label">Horario:</span>
+                            <span class="pdf-value">Salida: ${order.horaSalida} - Llegada: ${order.horaLlegada}</span>
+                        </div>
+                        <div class="pdf-field">
+                            <span class="pdf-label">Kilometraje:</span>
+                            <span class="pdf-value">Salida: ${order.kmSalida} km - Llegada: ${order.kmLlegada} km</span>
+                        </div>
+                        <div class="pdf-field">
+                            <span class="pdf-label">Fecha:</span>
+                            <span class="pdf-value">${formatDate(order.fechaLlenado)}</span>
+                        </div>
+                    </div>
+
+                    <div class="signatures-grid">
+                        <div class="signature-box">
+                            <div class="signature-display" style="font-size: 16px; min-height: 40px; margin-bottom: 10px;">
+                                ${order.firmaConductor || 'PENDIENTE'}
+                            </div>
+                            <div class="signature-name">${order.firmaConductor || ''}</div>
+                            <div class="signature-role">CONDUCTOR</div>
+                            <div style="font-size: 10px; color: #7f8c8d;">
+                                ${order.firmaConductorFecha ? formatDateTime(order.firmaConductorFecha) : ''}
+                            </div>
+                        </div>
+
+                        <div class="signature-box">
+                            <div class="signature-display" style="font-size: 16px; min-height: 40px; margin-bottom: 10px;">
+                                ${order.firmaTransporte || 'PENDIENTE'}
+                            </div>
+                            <div class="signature-name">RESPONSABLE DE TRANSPORTE</div>
+                            <div class="signature-role">DIRECCIÓN DISTRITAL</div>
+                            <div style="font-size: 10px; color: #7f8c8d;">
+                                ${order.firmaTransporteFecha ? formatDateTime(order.firmaTransporteFecha) : ''}
+                            </div>
+                        </div>
+
+                        <div class="signature-box">
+                            <div class="signature-display" style="font-size: 16px; min-height: 40px; margin-bottom: 10px;">
+                                ${order.firmaFinanciero || 'PENDIENTE'}
+                            </div>
+                            <div class="signature-name">${order.firmaFinanciero || 'JEFE FINANCIERO'}</div>
+                            <div class="signature-role">AUTORIZACIÓN DE SALIDA</div>
+                            <div style="font-size: 10px; color: #7f8c8d;">
+                                ${order.firmaFinancieroFecha ? formatDateTime(order.firmaFinancieroFecha) : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-success" onclick="generatePDF('${order.id}')">Descargar PDF</button>
+                    <button class="btn btn-secondary" onclick="closeModal()">Cerrar</button>
+                </div>
+            `;
+
+            // Generar QR
+            setTimeout(() => {
+                new QRCode(document.getElementById("qrcode"), {
+                    text: `ORDEN:${order.numeroOrden}|COND:${order.conductorCedula}|FECHA:${order.fechaLlenado}`,
+                    width: 100,
+                    height: 100
+                });
+            }, 100);
+
+            modal.style.display = 'block';
+        }
+
+        function generatePDF(orderId) {
+            const order = orders.find(o => o.id === orderId);
+            if (!order) return;
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Configurar fuente
+            doc.setFont("helvetica");
+            
+            // Header
+            doc.setFontSize(16);
+            doc.setTextColor(30, 60, 114);
+            doc.text("DIRECCIÓN DISTRITAL 08D01 ESMERALDAS MAGP", 105, 20, { align: "center" });
+            
+            doc.setFontSize(14);
+            doc.text(`ORDEN DE MOVILIZACIÓN N° ${order.numeroOrden}`, 105, 30, { align: "center" });
+            
+            // QR Code (simulado como texto por simplicidad en jsPDF básico)
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Código QR: ORDEN:${order.numeroOrden}`, 105, 40, { align: "center" });
+
+            let y = 50;
+
+            // Función helper para secciones
+            const addSection = (title, fields) => {
+                doc.setFontSize(12);
+                doc.setTextColor(30, 60, 114);
+                doc.text(title, 20, y);
+                y += 8;
+                
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
+                fields.forEach(([label, value]) => {
+                    doc.setFont("helvetica", "bold");
+                    doc.text(`${label}:`, 20, y);
+                    doc.setFont("helvetica", "normal");
+                    const splitValue = doc.splitTextToSize(value, 150);
+                    doc.text(splitValue, 70, y);
+                    y += 6 * splitValue.length;
+                });
+                y += 5;
+            };
+
+            addSection("INFORMACIÓN DE LA ENTIDAD", [
+                ["Nombre", order.entidadNombre],
+                ["Dirección", order.entidadDireccion],
+                ["Teléfono", order.entidadTelefono]
+            ]);
+
+            addSection("INFORMACIÓN DE LA COMISIÓN", [
+                ["Solicitante", order.solicitanteNombre],
+                ["Memorando N°", order.memorandoNumero],
+                ["Presidente", order.presidenteComision],
+                ["Integrantes", `${order.numIntegrantes} - ${order.nombresIntegrantes}`],
+                ["Motivo", order.motivoComision]
+            ]);
+
+            addSection("INFORMACIÓN DEL CONDUCTOR", [
+                ["Nombre", `${order.conductorNombre} ${order.conductorApellidos}`],
+                ["Licencia", `Tipo ${order.tipoLicencia} - ${order.licenciaVigente === 'SI' ? 'VIGENTE' : 'NO VIGENTE'}`]
+            ]);
+
+            addSection("INFORMACIÓN DEL VEHÍCULO", [
+                ["Marca/Modelo", `${order.marcaVehiculo} / ${order.modeloVehiculo}`],
+                ["Placa", order.placaVehiculo]
+            ]);
+
+            addSection("DETALLES DEL VIAJE", [
+                ["Origen", `${order.lugarOrigen} - ${order.direccionOrigen}`],
+                ["Destino", order.destino],
+                ["Horario", `Salida: ${order.horaSalida} - Llegada: ${order.horaLlegada}`],
+                ["Kilometraje", `Salida: ${order.kmSalida} km - Llegada: ${order.kmLlegada} km`],
+                ["Fecha", formatDate(order.fechaLlenado)]
+            ]);
+
+            // Firmas
+            y += 10;
+            doc.setFontSize(11);
+            doc.setTextColor(30, 60, 114);
+            doc.text("FIRMAS ELECTRÓNICAS", 105, y, { align: "center" });
+            y += 15;
+
+            // Tabla de firmas
+            const signatures = [
+                ["CONDUCTOR", order.firmaConductor || "PENDIENTE", order.firmaConductorFecha ? formatDateTime(order.firmaConductorFecha) : ""],
+                ["RESPONSABLE DE\nTRANSPORTE", order.firmaTransporte || "PENDIENTE", order.firmaTransporteFecha ? formatDateTime(order.firmaTransporteFecha) : ""],
+                ["JEFE FINANCIERO\n(AUTORIZACIÓN)", order.firmaFinanciero || "PENDIENTE", order.firmaFinancieroFecha ? formatDateTime(order.firmaFinancieroFecha) : ""]
+            ];
+
+            const colWidth = 60;
+            const startX = 20;
+
+            signatures.forEach((sig, index) => {
+                const x = startX + (index * colWidth);
+                
+                // Línea de firma
+                doc.line(x, y, x + 50, y);
+                
+                // Nombre/Rol
+                doc.setFontSize(9);
+                doc.setTextColor(0, 0, 0);
+                doc.setFont("helvetica", "bold");
+                const lines = doc.splitTextToSize(sig[0], 50);
+                doc.text(lines, x + 25, y + 5, { align: "center" });
+                
+                // Firma
+                doc.setFont("helvetica", "italic");
+                doc.setFontSize(8);
+                doc.text(sig[1], x + 25, y + 12, { align: "center" });
+                
+                // Fecha
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(7);
+                doc.setTextColor(127, 140, 141);
+                doc.text(sig[2], x + 25, y + 18, { align: "center" });
+            });
+
+            doc.save(`Orden_Movilizacion_${order.numeroOrden}.pdf`);
+        }
+
+        function closeModal() {
+            document.getElementById('orderModal').style.display = 'none';
+        }
+
+        function showConductorMenu() {
+            document.getElementById('createOrderForm').classList.add('hidden');
+            document.getElementById('myOrdersList').classList.add('hidden');
+        }
+
+        function showTransporteMenu() {
+            document.getElementById('pendingOrdersTransporte').classList.add('hidden');
+            document.getElementById('transporteDashboard').classList.remove('hidden');
+        }
+
+        function showFinancieroMenu() {
+            document.getElementById('pendingAuthorizationList').classList.add('hidden');
+            document.getElementById('financieroDashboard').classList.remove('hidden');
+        }
+
+        function showTab(tabName) {
+            // Ocultar todos los tabs
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            
+            // Mostrar el seleccionado
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            if (tabName === 'allOrders') {
+                loadAllOrdersTable();
+            }
+        }
+
+        function loadAllOrdersTable() {
+            const tbody = document.getElementById('allOrdersTableBody');
+            tbody.innerHTML = '';
+
+            const sortedOrders = [...orders].sort((a, b) => new Date(b.fechaCreacion) - new Date(a.fechaCreacion));
+
+            sortedOrders.forEach(order => {
+                const conductor = users.find(u => u.cedula === order.conductorCedula);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${order.numeroOrden}</td>
+                    <td>${formatDate(order.fechaLlenado)}</td>
+                    <td>${order.solicitanteNombre}</td>
+                    <td>${conductor ? conductor.nombre : 'N/A'}</td>
+                    <td class="status-${order.estado.replace('-', '-')}">${getStatusText(order.estado)}</td>
+                    <td>
+                        <button class="btn" onclick="viewOrder('${order.id}')" style="padding: 5px 10px; font-size: 12px;">Ver</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function showForgotPassword() {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('forgotPasswordSection').classList.remove('hidden');
+        }
+
+        function showLogin() {
+            document.getElementById('forgotPasswordSection').classList.add('hidden');
+            document.getElementById('loginSection').classList.remove('hidden');
+        }
+
+        function handlePasswordChange(e) {
+            e.preventDefault();
+            const cedula = document.getElementById('fpCedula').value.trim();
+            const oldPass = document.getElementById('fpOldPassword').value;
+            const newPass = document.getElementById('fpNewPassword').value;
+            const confirmPass = document.getElementById('fpConfirmPassword').value;
+
+            const user = users.find(u => u.cedula === cedula && u.password === oldPass);
+            
+            if (!user) {
+                showAlert('Cédula o contraseña actual incorrectos', 'error');
+                return;
+            }
+
+            if (newPass !== confirmPass) {
+                showAlert('Las nuevas contraseñas no coinciden', 'error');
+                return;
+            }
+
+            if (newPass.length < 4) {
+                showAlert('La nueva contraseña debe tener al menos 4 caracteres', 'error');
+                return;
+            }
+
+            user.password = newPass;
+            saveUsers();
+            showAlert('Contraseña cambiada exitosamente', 'success');
+            document.getElementById('forgotPasswordForm').reset();
+            setTimeout(showLogin, 1500);
+        }
+
+        function showChangePassword() {
+            document.getElementById('fpCedula').value = currentUser.cedula;
+            showForgotPassword();
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('dashboardSection').classList.add('hidden');
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('loginForm').reset();
+        }
+
+        function showAlert(message, type) {
+            const alert = document.getElementById('alertContainer');
+            alert.textContent = message;
+            alert.className = `alert alert-${type}`;
+            alert.style.display = 'block';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 3000);
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('es-EC');
+        }
+
+        function formatDateTime(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleString('es-EC');
+        }
+
+        function getStatusText(status) {
+            const statuses = {
+                'firmado-conductor': 'Firmada por Conductor',
+                'enviado-transporte': 'Enviada a Transporte',
+                'firmado-transporte': 'Firmada por Transporte',
+                'autorizado': 'Autorizada por Financiero',
+                'archivado': 'Archivada'
+            };
+            return statuses[status] || status;
+        }
+
+        // Cerrar modal al hacer clic fuera
+        window.onclick = function(event) {
+            const modal = document.getElementById('orderModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
