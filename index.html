@@ -672,7 +672,7 @@
                             <label>Nombre del Jefe Financiero Actual</label>
                             <input type="text" id="jefeFinancieroName" placeholder="Ingrese el nombre del Jefe Financiero">
                         </div>
-                        <button class="btn btn-success" onclick="saveConfig()">Guardar Configuración</button>
+                        <button type="button" class="btn btn-success" onclick="saveConfig()">Guardar Configuración</button>
                     </div>
                 </div>
             </div>
@@ -1114,13 +1114,25 @@
             localStorage.setItem('movilizacion_orders', JSON.stringify(orders));
         }
 
+        // FUNCIÓN PARA GUARDAR CONFIGURACIÓN - CORREGIDA
         function saveConfig() {
+            const jefeName = document.getElementById('jefeFinancieroName').value.trim();
+            
+            if (!jefeName) {
+                alert('Por favor ingrese el nombre del Jefe Financiero');
+                return;
+            }
+            
+            // Guardar en localStorage
             const config = {
-                jefeFinancieroName: document.getElementById('jefeFinancieroName').value || "JEFE FINANCIERO"
+                jefeFinancieroName: jefeName.toUpperCase()
             };
             localStorage.setItem('movilizacion_config', JSON.stringify(config));
-            jefeFinancieroName = config.jefeFinancieroName;
-            showAlert('Configuración guardada exitosamente', 'success');
+            
+            // Actualizar variable global
+            jefeFinancieroName = jefeName.toUpperCase();
+            
+            showAlert('Configuración guardada exitosamente. El nombre "' + jefeFinancieroName + '" aparecerá en las firmas de Jefe Financiero.', 'success');
         }
 
         function setupEventListeners() {
@@ -1208,7 +1220,10 @@
             loadUsersTable();
             
             // Cargar configuración
-            document.getElementById('jefeFinancieroName').value = jefeFinancieroName;
+            const jefeField = document.getElementById('jefeFinancieroName');
+            if (jefeField) {
+                jefeField.value = jefeFinancieroName;
+            }
         }
 
         function loadUsersTable() {
@@ -1387,8 +1402,9 @@
             orders.push(order);
             saveOrders();
 
-            showAlert(`Orden ${orderNumber} creada y firmada exitosamente`, 'success');
-            cancelOrder();
+            showAlert(`Orden ${orderNumber} creada y firmada exitosamente. Ahora puede enviarla a Responsable de Transporte.`, 'success');
+            document.getElementById('orderForm').reset();
+            showMyOrders();
         }
 
         function showMyOrders() {
@@ -1403,15 +1419,26 @@
 
             myOrders.forEach(order => {
                 const tr = document.createElement('tr');
+                
+                // Determinar qué botones mostrar según el estado
+                let actionButtons = `<button class="btn" onclick="viewOrder('${order.id}')" style="padding: 5px 10px; font-size: 12px;">Ver</button>`;
+                
+                if (order.estado === 'firmado-conductor') {
+                    actionButtons += ` <button class="btn btn-success" onclick="sendToTransporte('${order.id}')" style="padding: 5px 10px; font-size: 12px;">Enviar a Transporte</button>`;
+                } else if (order.estado === 'enviado-transporte') {
+                    actionButtons += ` <span style="color: #3498db; font-size: 12px;">⏳ Esperando firma de Transporte</span>`;
+                } else if (order.estado === 'firmado-transporte') {
+                    actionButtons += ` <span style="color: #27ae60; font-size: 12px;">✓ Firmado por Transporte</span>`;
+                } else if (order.estado === 'autorizado') {
+                    actionButtons += ` <span style="color: #9b59b6; font-size: 12px;">✓✓✓ Autorizado</span>`;
+                }
+                
                 tr.innerHTML = `
                     <td>${order.numeroOrden}</td>
                     <td>${formatDate(order.fechaLlenado)}</td>
                     <td>${order.destino}</td>
                     <td class="status-${order.estado.replace('-', '-')}">${getStatusText(order.estado)}</td>
-                    <td>
-                        <button class="btn" onclick="viewOrder('${order.id}')" style="padding: 5px 10px; font-size: 12px;">Ver</button>
-                        ${order.estado === 'firmado-conductor' ? `<button class="btn btn-success" onclick="sendToTransporte('${order.id}')" style="padding: 5px 10px; font-size: 12px;">Enviar a Transporte</button>` : ''}
-                    </td>
+                    <td>${actionButtons}</td>
                 `;
                 tbody.appendChild(tr);
             });
